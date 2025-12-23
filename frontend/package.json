@@ -1,0 +1,32 @@
+{
+  "name": "hibistay-frontend",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@types/react-datepicker": "^6.2.0",
+    "date-fns": "^4.1.0",
+    "i18next": "^25.7.1",
+    "i18next-browser-languagedetector": "^8.2.0",
+    "lucide-react": "^0.460.0",
+    "react": "^18.3.1",
+    "react-datepicker": "^8.10.0",
+    "react-dom": "^18.3.1",
+    "react-i18next": "^16.3.5",
+    "react-router-dom": "^7.10.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tailwindcss": "^4.0.0",
+    "typescript": "~5.6.2",
+    "vite": "^5.4.8"
+  }
+}

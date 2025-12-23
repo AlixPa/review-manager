@@ -1,0 +1,75 @@
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - ./.db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  backend:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    env_file:
+      - .env
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: ${MYSQL_PORT_DOCKER}
+      ENV: production
+    volumes:
+      - ./backend/src/static:/backend/src/static
+    depends_on:
+      mysql:
+        condition: service_healthy
+    entrypoint:
+      [
+        "gunicorn",
+        "-w",
+        "4",
+        "-k",
+        "uvicorn.workers.UvicornWorker",
+        "main:app",
+        "--bind",
+        "0.0.0.0:8000",
+      ]
+
+  migrations:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.migrations
+    env_file:
+      - .env
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: ${MYSQL_PORT_DOCKER}
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  nginx-frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.nginx
+    restart: unless-stopped
+    environment:
+      BACKEND_HOST: http://backend
+      VITE_BACKEND_HOST: http://backend
+      BACKEND_PORT: 8000
+      VITE_BACKEND_PORT: 8000
+      FRONTEND_PORT: 443
+    ports:
+      - "80:80"
+      - "443:443"
+    env_file:
+      - .env

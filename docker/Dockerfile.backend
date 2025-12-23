@@ -1,0 +1,14 @@
+FROM python:3.13.3
+
+# Set working directory
+WORKDIR /backend
+
+COPY backend/requirements.txt requirements.txt
+
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY ./backend /backend
+
+# Default command just sleeps (we override it in entrypoint)
+CMD ["sleep", "infinity"]

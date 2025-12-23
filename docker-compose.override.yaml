@@ -1,0 +1,66 @@
+services:
+  mysql:
+    ports:
+      - "${MYSQL_PORT}:${MYSQL_PORT_DOCKER}"
+
+  backend:
+    environment:
+      ENV: ${ENV}
+    ports:
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+    entrypoint:
+      [
+        "uvicorn",
+        "src.main:app",
+        "--reload",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "${BACKEND_PORT}",
+      ]
+    develop:
+      watch:
+        - action: sync
+          path: ./backend/src
+          target: /backend/src
+          ignore: 
+            - __pycache__/
+            - "*.pyc"
+            - "*.pyo"
+            - .pytest_cache/
+            - .mypy_cache/
+            - scripts/
+
+  frontend:
+    ports:
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    env_file:
+      - .env
+    environment:
+      BACKEND_HOST: http://backend
+      VITE_BACKEND_HOST: http://backend
+      VITE_BACKEND_PORT: ${BACKEND_PORT}
+    entrypoint: ["bun", "run", "dev", "--host"]
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /frontend
+          ignore: 
+           - node_modules/
+        - action: rebuild
+          path: ./frontend/package.json
+
+  nginx-frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.nginx.local
+    environment:
+      FRONTEND_PORT: ${FRONTEND_PORT}
+      BACKEND_PORT: ${BACKEND_PORT}
+      VITE_BACKEND_PORT: ${BACKEND_PORT}
+    ports:
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"

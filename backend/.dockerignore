@@ -1,0 +1,22 @@
+# Python environment
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# Local Secrets
+.env
+.env.*
+!.env.example
+
+# IDE & OS
+.git
+.vscode
+.idea
+.DS_Store
+
+# Databases (if you have local sqlite files)
+*.db
+*.sqlite3

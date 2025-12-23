@@ -1,0 +1,12 @@
+FROM python:3.13.3
+
+WORKDIR /app
+COPY ./database/migrations /app/migrations
+COPY ./database/requirements.txt /app/requirements.txt
+
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY ./shell/run_migrations.sh /run_migrations.sh
+RUN chmod +x /run_migrations.sh
+ENTRYPOINT ["/run_migrations.sh"]
