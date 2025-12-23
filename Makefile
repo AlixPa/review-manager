@@ -22,6 +22,7 @@ local-logs-%:
 	$(COMPOSE_LOCAL) logs -f $*
 
 stop:
+	$(COMPOSE_LOCAL) stop
 	$(COMPOSE_PROD) stop
 
 prod-app: prod-run-mysql run-migrations prod-run-backend prod-run-nginx-frontend
@@ -36,6 +37,7 @@ dev-backend:
 clean:
 	docker system prune -f
 	docker volume prune -f
+	docker image prune -a -f
 
 new-migration:
 	./shell/new_migration.sh "$(NAME)"

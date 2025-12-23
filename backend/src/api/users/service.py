@@ -2,7 +2,7 @@ from datetime import date, datetime, timedelta
 
 from src.clients.mysql import AMysqlClientReader, AMySqlIdNotFoundError
 from src.config.path import path_config
-from src.models.database import Reward, User
+from src.models.database import Reward, User, UUID4Str
 from src.modules.date import get_first_day_of_cycle
 
 from .exceptions import UserNotFound
@@ -22,12 +22,9 @@ async def get_users_service() -> list[tuple[User, int]]:
     return [(u, sum([r.points for r in rewards if r.user_id == u.id])) for u in users]
 
 
-async def patch_set_test_user_service(user_id: int) -> None:
+async def patch_set_user_service(user_public_id: UUID4Str) -> User:
     reader = AMysqlClientReader()
-    try:
-        user = await reader.select_by_id(table=User, id=user_id)
-    except AMySqlIdNotFoundError:
+    users = await reader.select(table=User, cond_equal=dict(public_id=user_public_id))
+    if not users:
         raise UserNotFound()
-
-    with open(path_config.current_mock_user_json_file, "w") as f:
-        f.write(user.model_dump_json())
+    return users[0]

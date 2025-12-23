@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { AlertCircle, Loader2, Trash2, CheckCircle2, Users, Code, Coins } from 'lucide-react';
 import { Task, TaskState, getTaskPriorityName, TaskReviewPriority } from '../types/task';
 import TaskCard from './TaskCard';
 import { tasksApi } from '../api/tasks';
 import { TaskLinesOfCode, getTaskLinesOfCodeDisplay } from '../types/taskLinesOfCode';
+import { useAuth } from '../contexts/AuthContext';
 
 interface TabConfig {
   state: number;
@@ -19,6 +20,7 @@ interface TaskTabViewProps {
 }
 
 const TaskTabView = ({ tabs, defaultTab = 0, isManageView = false }: TaskTabViewProps) => {
+  const { isAuthenticated } = useAuth();
   const [activeTabIndex, setActiveTabIndex] = useState(defaultTab);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,11 +28,7 @@ const TaskTabView = ({ tabs, defaultTab = 0, isManageView = false }: TaskTabView
 
   const activeTab = tabs[activeTabIndex];
 
-  useEffect(() => {
-    fetchTasks(activeTab);
-  }, [activeTabIndex]);
-
-  const fetchTasks = async (tab: TabConfig) => {
+  const fetchTasks = useCallback(async (tab: TabConfig) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -51,13 +49,22 @@ const TaskTabView = ({ tabs, defaultTab = 0, isManageView = false }: TaskTabView
       });
       
       setTasks(sortedData);
-    } catch (err) {
+    } catch (err: any) {
       setError('Failed to fetch tasks. Please try again.');
       console.error('Error fetching tasks:', err);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchTasks(activeTab);
+    } else {
+      setTasks([]);
+      setError('Please choose a profile to view tasks');
+    }
+  }, [activeTabIndex, isAuthenticated, activeTab, fetchTasks]);
 
   const handleDeleteAll = async () => {
     const count = tasks.length;

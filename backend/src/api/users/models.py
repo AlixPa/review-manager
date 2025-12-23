@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from pydantic import BaseModel
 from src.models.database import UUID4Str
 
@@ -15,5 +13,5 @@ class GetUserResponse(BaseModel):
     user_name: str
 
 
-class PatchSetTestUser(BaseModel):
-    test_user_id: int
+class PatchSetUser(BaseModel):
+    user_public_id: UUID4Str

@@ -6,7 +6,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: () => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   refetchUser: () => Promise<void>;
 }
 
@@ -35,8 +35,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     authApi.loginWithGoogle();
   };
 
-  const logout = () => {
-    authApi.logout();
+  const logout = async () => {
+    // Clear user state immediately for better UX
+    setUser(null);
+    // Call logout endpoint (will clear cookie and reload page)
+    await authApi.logout();
   };
 
   const refetchUser = async () => {

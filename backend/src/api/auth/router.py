@@ -9,6 +9,7 @@ from src.config.auth import auth_config
 from src.config.env import ENV, ServiceEnv
 from src.logger import get_logger
 from src.models.jwt import JwtPlayload
+from src.modules.authentification import delete_loging_cookies, set_login_cookies
 
 from .service import auth_google_callback_service
 
@@ -52,28 +53,9 @@ async def auth_google_callback(
 
     user = await auth_google_callback_service(code)
 
-    jwt_playload = JwtPlayload(
-        user_id=user.id,
-        exp=datetime.now(timezone.utc)
-        + timedelta(days=auth_config.session.expiration_days),
-    )
-    jwt_token = jwt.encode(
-        payload=jwt_playload.model_dump(),
-        key=auth_config.jwt.secret_key,
-        algorithm=auth_config.jwt.algorithm,
-    )
-
     response = RedirectResponse(auth_config.callback_redirect)
-    response.delete_cookie(auth_config.session.oauth_state_keyword)
-    response.set_cookie(
-        key=auth_config.session.session_token_keyword,
-        value=jwt_token,
-        httponly=True,
-        secure=ENV != ServiceEnv.LOCAL,
-        samesite="lax",
-        max_age=3600 * 24 * auth_config.session.expiration_days,
-        domain=None,  # TODO: needed if backend/frontend different domains
-    )
+    response = delete_loging_cookies(response)
+    response = set_login_cookies(response, user)
 
     return response
 
@@ -82,5 +64,5 @@ async def auth_google_callback(
 async def logout() -> RedirectResponse:
     logger.info(f"GET logout")
     response = RedirectResponse(auth_config.logout_redirect)
-    response.delete_cookie(auth_config.session.session_token_keyword)
+    response = delete_loging_cookies(response)
     return response

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Sidebar from '../components/Sidebar';
 import RewardCard from '../components/RewardCard';
 import { rewardsApi } from '../api/rewards';
@@ -6,14 +6,23 @@ import { Reward } from '../types/reward';
 import { Loader2, AlertCircle, Inbox, CheckCircle2, Users, Code, Coins } from 'lucide-react';
 import { TaskReviewPriority, getTaskPriorityName } from '../types/task';
 import { TaskLinesOfCode, getTaskLinesOfCodeDisplay } from '../types/taskLinesOfCode';
+import { useAuth } from '../contexts/AuthContext';
 
 const RewardsPage = () => {
+  const { isAuthenticated } = useAuth();
   const [cycleOffset, setCycleOffset] = useState(0);
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchRewards = async () => {
+  const fetchRewards = useCallback(async () => {
+    if (!isAuthenticated) {
+      setRewards([]);
+      setError('Please choose a profile to view rewards');
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     try {
@@ -37,11 +46,11 @@ const RewardsPage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [cycleOffset, isAuthenticated]);
 
   useEffect(() => {
     fetchRewards();
-  }, [cycleOffset]);
+  }, [fetchRewards]);
 
   const cycleOptions = [
     { value: 0, label: 'Current Cycle' },

@@ -16,9 +16,20 @@ export const authApi = {
     return apiClient.get<User>('/users/me');
   },
 
-  // Logout
-  logout: () => {
-    window.location.href = '/api/auth/logout';
+  // Logout (triggers backend logout and page reload)
+  logout: async (): Promise<void> => {
+    try {
+      // Call logout endpoint (may return redirect)
+      await fetch('/api/auth/logout', {
+        method: 'GET',
+        credentials: 'include',
+      });
+    } catch (error) {
+      // Ignore errors from redirect response
+      console.log('Logout: Cookie cleared');
+    }
+    // Always reload page to reset app state
+    window.location.href = '/';
   },
 };
 

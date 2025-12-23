@@ -61,12 +61,12 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.nginx
+      args:
+        VITE_FLAG_DEVELOPMENT_LOGIN: ${VITE_FLAG_DEVELOPMENT_LOGIN:-false}
     restart: unless-stopped
     environment:
       BACKEND_HOST: http://backend
-      VITE_BACKEND_HOST: http://backend
       BACKEND_PORT: 8000
-      VITE_BACKEND_PORT: 8000
       FRONTEND_PORT: 443
     ports:
       - "80:80"
